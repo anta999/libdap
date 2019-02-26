@@ -27,11 +27,11 @@ static struct {
 } _net_notification;
 
 
-void watchForNetworkChanges()
+void watch_for_network_changes()
 {
     SCDynamicStoreContext context = { 0, (void *)s_store, NULL, NULL, NULL };
 
-    s_store = SCDynamicStoreCreate(NULL, CFSTR("watchForNetworkChanges"), _net_notification.callback, &context);
+    s_store = SCDynamicStoreCreate(NULL, CFSTR("watch_for_network_changes"), _net_notification.callback, &context);
     if (!s_store) {
         log_it(L_ERROR, "Could not open session with config.error = %s\n", SCErrorString(SCError()));
         return;
@@ -144,7 +144,7 @@ void dap_network_monitor_deinit(void)
 static void* network_monitor_worker(void *arg)
 {
     pthread_barrier_t *barrier = (pthread_barrier_t *)arg;
-    watchForNetworkChanges();
+    watch_for_network_changes();
     pthread_barrier_wait(barrier);
     _net_notification.rlref = CFRunLoopGetCurrent();
     CFRunLoopRun();
@@ -264,13 +264,11 @@ static OSStatus CopyIPAddressListSCF(CFArrayRef *addrList)
     // Create a connection to the dynamic store, then create
     // a search pattern that finds all IPv4 entities.
     // The pattern is "State:/Network/Service/[^/]+/IPv4".
-printf("1\n");
     ref = SCDynamicStoreCreate( NULL,
                                 CFSTR("CopyIPAddressListSCF"),
                                 NULL,
                                 NULL);
     err = MoreSCError(ref);
- printf("2\n");
     if (err == noErr) {
         pattern = SCDynamicStoreKeyCreateNetworkInterfaceEntity(
                                 NULL,
@@ -284,7 +282,6 @@ printf("1\n");
     // call SCDynamicStoreCopyMultiple.  We use that call,
     // rather than repeated calls to SCDynamicStoreCopyValue,
     // because it gives us a snapshot of the state.
-printf("3\n");
     if (err == noErr) {
         patternList = CFArrayCreate(NULL,
                                     (const void **) &pattern,
@@ -292,7 +289,6 @@ printf("3\n");
                                     &kCFTypeArrayCallBacks);
         err = CFQError(patternList);
     }
-    printf("4\n");
     if (err == noErr) {
         valueDict = SCDynamicStoreCopyMultiple(ref,
                                                NULL,
@@ -302,7 +298,6 @@ printf("3\n");
 
     // For each IPv4 entity that we found, extract the list
     // of IP addresses and append it to our results array.
-printf("5\n");
     if (err == noErr) {
         result = CFArrayCreateMutable(NULL, 0,
                                       &kCFTypeArrayCallBacks);
@@ -311,13 +306,11 @@ printf("5\n");
 
     // Iterate over the values, extracting the IP address
     // arrays and appending them to the result.
-printf("6\n");
     if (err == noErr) {
         CFDictionaryApplyFunction(valueDict,
                                   GetIPAddressListFromValue,
                                   result);
     }
-    printf("7\n");
     // Clean up.
 
     CFQRelease(ref);
@@ -332,6 +325,5 @@ printf("6\n");
 
     assert( (err == noErr) == (*addrList != NULL) );
 
-    printf("NO ERRRROOOOOOOORRRRRR i get the result");
     return err;
 }

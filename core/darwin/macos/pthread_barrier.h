@@ -23,12 +23,12 @@ int pthread_barrier_init(pthread_barrier_t *barrier, const pthread_barrierattr_t
     }
     if(pthread_mutex_init(&barrier->mutex, 0) < 0)
     {
-        return -1;
+        return -2;
     }
     if(pthread_cond_init(&barrier->cond, 0) < 0)
     {
         pthread_mutex_destroy(&barrier->mutex);
-        return -1;
+        return -3;
     }
     barrier->tripCount = count;
     barrier->count = 0;

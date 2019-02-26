@@ -1,6 +1,6 @@
 cmake_minimum_required(VERSION 3.0)
 
-project (dap_core_unix)
+project (dap_core_darwin)
 
 file(GLOB CORE_DARWIN_SRCS *.c)
 file(GLOB CORE_DARWIN_HEADERS *.h)

@@ -19,4 +19,5 @@ endif()
 
 if(DARWIN)
     add_subdirectory(darwin)
+    target_link_libraries(${PROJECT_NAME} dap_core_darwin)
 endif()
