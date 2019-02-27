@@ -3,6 +3,7 @@
 
 #include <assert.h>
 #include <stdlib.h>
+#include <stdint.h>
 #include "../dap_crypto_common.h"
 
 #define CRYPTO_RANDOMBYTES 32
@@ -77,6 +78,8 @@ int tesla_crypto_sign(tesla_signature_t *, const unsigned char *, unsigned long 
 
 int tesla_crypto_sign_open(tesla_signature_t *, const unsigned char *, unsigned long long, const tesla_public_key_t *);
 
+void tesla_private_key_delete(tesla_private_key_t *private_key);
+void tesla_public_key_delete(tesla_public_key_t *public_key);
 void tesla_private_and_public_keys_delete(tesla_private_key_t *private_key, tesla_public_key_t *public_key);
 
 void tesla_signature_delete(tesla_signature_t *signature);
@@ -102,6 +105,11 @@ void poly_uniform(poly_k *a, const unsigned char *seed, tesla_param_t *p);
 void sample_y(int64_t *y, const unsigned char *seed, int nonce, tesla_param_t *p);
 void sample_gauss_poly(int64_t *x, const unsigned char *seed, int nonce, tesla_param_t *p);
 void encode_c(uint32_t *pos_list, int16_t *sign_list, unsigned char *c_bin, tesla_param_t *p);
+
+uint8_t* tesla_write_private_key(const tesla_private_key_t* a_private_key, size_t *a_buflen_out);
+uint8_t* tesla_write_public_key(const tesla_public_key_t* a_public_key, size_t *a_buflen_out);
+tesla_private_key_t* tesla_read_private_key(uint8_t *a_buf, size_t a_buflen);
+tesla_public_key_t* tesla_read_public_key(uint8_t *a_buf, size_t a_buflen);
 
 #endif
 

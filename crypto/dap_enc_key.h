@@ -221,6 +221,11 @@ void dap_enc_key_deinit(void);
 size_t dap_enc_key_get_enc_size(dap_enc_key_t * a_key, const size_t buf_in_size);
 size_t dap_enc_key_get_dec_size(dap_enc_key_t * a_key, const size_t buf_in_size);
 
+uint8_t* dap_enc_key_serealize_priv_key(dap_enc_key_t *a_key, size_t *a_buflen_out);
+uint8_t* dap_enc_key_serealize_pub_key(dap_enc_key_t *a_key, size_t *a_buflen_out);
+int dap_enc_key_deserealize_priv_key(dap_enc_key_t *a_key, uint8_t *a_buf, size_t a_buflen);
+int dap_enc_key_deserealize_pub_key(dap_enc_key_t *a_key, uint8_t *a_buf, size_t a_buflen);
+
 dap_enc_key_serealize_t* dap_enc_key_serealize(dap_enc_key_t * key);
 dap_enc_key_t* dap_enc_key_deserealize(void *buf, size_t buf_size);
 
@@ -232,6 +237,9 @@ dap_enc_key_t *dap_enc_key_new(dap_enc_key_type_t a_key_type);
 dap_enc_key_t *dap_enc_key_new_generate(dap_enc_key_type_t key_type, const void *kex_buf,
                                                       size_t kex_size, const void* seed,
                                                       size_t seed_size, size_t key_size);
+
+// update struct dap_enc_key_t after insert foreign keys
+void dap_enc_key_update(dap_enc_key_t *a_key);
 
 // for asymmetric gen public key
 dap_enc_key_t *dap_enc_gen_pub_key_from_priv(struct dap_enc_key *a_key, void **priv_key, size_t *alice_msg_len);

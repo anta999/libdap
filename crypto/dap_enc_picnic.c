@@ -16,8 +16,12 @@
 static void set_picnic_params_t(struct dap_enc_key *key)
 {
     picnic_params_t *param = (key) ? (picnic_params_t*) key->_inheritor : NULL;
-    if(param && key->_inheritor_size == sizeof(picnic_params_t))
+    if(param && key->_inheritor_size == sizeof(picnic_params_t)){
+        if(key->priv_key_data)
         *param = ((picnic_privatekey_t*) key->priv_key_data)->params;
+        else if(key->pub_key_data)
+            *param = ((picnic_privatekey_t*) key->pub_key_data)->params;
+    }
 }
 
 /**
@@ -63,6 +67,15 @@ void dap_enc_sig_picnic_key_delete(struct dap_enc_key *key)
     //picnic_keypair_delete((picnic_privatekey_t*) key->priv_key_data, (picnic_publickey_t *) key->pub_key_data);
     key->priv_key_data_size = 0;
     key->pub_key_data_size = 0;
+}
+
+void dap_enc_sig_picnic_update(struct dap_enc_key * a_key)
+{
+    if(a_key) {
+        if(!a_key->priv_key_data ||
+           !picnic_validate_keypair((picnic_privatekey_t *) a_key->priv_key_data, (picnic_publickey_t *) a_key->pub_key_data))
+            set_picnic_params_t(a_key);
+    }
 }
 
 void dap_enc_sig_picnic_key_new_generate(struct dap_enc_key * key, const void *kex_buf, size_t kex_size,
@@ -167,4 +180,33 @@ size_t dap_enc_sig_picnic_verify_sign(struct dap_enc_key * key, const void* mess
     free(sig);
     return 0;
 }
+
+/*
+uint8_t* dap_enc_sig_picnic_write_public_key(struct dap_enc_key * a_key, size_t *a_buflen_out)
+{
+    const picnic_publickey_t *l_key = a_key->pub_key_data;
+    size_t buflen = picnic_get_public_key_size(l_key); // Get public key size for serialize
+    uint8_t* l_buf = DAP_NEW_SIZE(uint8_t, buflen);
+    // Serialize public key
+    if(picnic_write_public_key(l_key, l_buf, buflen)>0){
+        if(a_buflen_out)
+            *a_buflen_out = buflen;
+        return l_buf;
+    }
+    return NULL;
+}
+
+uint8_t* dap_enc_sig_picnic_read_public_key(struct dap_enc_key * a_key, uint8_t a_buf, size_t *a_buflen)
+{
+   const picnic_publickey_t *l_key = a_key->pub_key_data;
+    size_t buflen = picnic_get_public_key_size(l_key);  Get public key size for serialize
+    uint8_t* l_buf = DAP_NEW_SIZE(uint8_t, buflen);
+    // Deserialize public key
+    if(!picnic_read_public_key(l_key, a_l_buf, buflen)>0){
+        if(a_buflen_out)
+            *a_buflen_out = buflen;
+        return l_buf;
+    }
+    return NULL;
+}*/
 
