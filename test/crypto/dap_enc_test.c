@@ -318,14 +318,6 @@ static void test_serealize_deserealize_pub_priv(dap_enc_key_type_t key_type)
 void dap_enc_tests_run() {
     dap_print_module_name("dap_enc");
     init_test_case();
-
-    //dap_print_module_name("dap_enc_sig serealize->deserealize BLISS");
-    //test_serealize_deserealize_pub_priv(DAP_ENC_KEY_TYPE_SIG_BLISS);
-    dap_print_module_name("dap_enc_sig serealize->deserealize PICNIC");
-    test_serealize_deserealize_pub_priv(DAP_ENC_KEY_TYPE_SIG_PICNIC);
-    dap_print_module_name("dap_enc_sig serealize->deserealize TESLA");
-    test_serealize_deserealize_pub_priv(DAP_ENC_KEY_TYPE_SIG_TESLA);
-
     test_encode_decode_raw(50);
     test_encode_decode_raw_b64(50);
     test_encode_decode_raw_b64_url_safe(50);
@@ -334,5 +326,12 @@ void dap_enc_tests_run() {
     test_serealize_deserealize(DAP_ENC_KEY_TYPE_IAES);
     dap_print_module_name("dap_enc serealize->deserealize OAES");
     test_serealize_deserealize(DAP_ENC_KEY_TYPE_OAES);
+
+    dap_print_module_name("dap_enc_sig serealize->deserealize BLISS");
+    test_serealize_deserealize_pub_priv(DAP_ENC_KEY_TYPE_SIG_BLISS);
+    dap_print_module_name("dap_enc_sig serealize->deserealize PICNIC");
+    test_serealize_deserealize_pub_priv(DAP_ENC_KEY_TYPE_SIG_PICNIC);
+    dap_print_module_name("dap_enc_sig serealize->deserealize TESLA");
+    test_serealize_deserealize_pub_priv(DAP_ENC_KEY_TYPE_SIG_TESLA);
     cleanup_test_case();
 }
