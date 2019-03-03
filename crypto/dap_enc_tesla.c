@@ -103,6 +103,56 @@ size_t dap_enc_tesla_calc_signature_size(void)
     return sizeof(tesla_signature_t);
 }
 
+/* Serialize a signature */
+uint8_t* dap_enc_tesla_write_signature(tesla_signature_t* a_sign, size_t *a_sign_out)
+{
+    if(!a_sign || *a_sign_out!=sizeof(tesla_signature_t)) {
+        return NULL ;
+    }
+    size_t l_shift_mem = 0;
+    size_t l_buflen = sizeof(size_t) + sizeof(tesla_kind_t) + a_sign->sig_len + sizeof(unsigned long long);
+
+    uint8_t *l_buf = DAP_NEW_SIZE(uint8_t, l_buflen);
+    memcpy(l_buf, &l_buflen, sizeof(size_t));
+    l_shift_mem += sizeof(size_t);
+    memcpy(l_buf + l_shift_mem, &a_sign->kind, sizeof(tesla_kind_t));
+    l_shift_mem += sizeof(tesla_kind_t);
+    memcpy(l_buf + l_shift_mem, &a_sign->sig_len, sizeof(unsigned long long));
+    l_shift_mem += sizeof(unsigned long long);
+    memcpy(l_buf + l_shift_mem, a_sign->sig_data, a_sign->sig_len );
+    l_shift_mem += a_sign->sig_len ;
+
+    if(a_sign_out)
+        *a_sign_out = l_buflen;
+    return l_buf;
+}
+
+/* Deserialize a signature */
+tesla_signature_t* dap_enc_tesla_read_signature(uint8_t *a_buf, size_t a_buflen)
+{
+    if(!a_buf || a_buflen < (sizeof(size_t) + sizeof(tesla_kind_t)))
+        return NULL ;
+    tesla_kind_t kind;
+    size_t l_buflen = 0;
+    memcpy(&l_buflen, a_buf, sizeof(size_t));
+    memcpy(&kind, a_buf + sizeof(size_t), sizeof(tesla_kind_t));
+    if(l_buflen != a_buflen)
+        return NULL ;
+    tesla_param_t p;
+    if(!tesla_params_init(&p, kind))
+        return NULL ;
+
+    tesla_signature_t* l_sign = DAP_NEW(tesla_signature_t);
+    l_sign->kind = kind;
+    size_t l_shift_mem = sizeof(size_t) + sizeof(tesla_kind_t);
+    memcpy(&l_sign->sig_len, a_buf + l_shift_mem, sizeof(unsigned long long));
+    l_shift_mem += sizeof(unsigned long long);
+    l_sign->sig_data = DAP_NEW_SIZE(unsigned char, l_sign->sig_len);
+    memcpy(l_sign->sig_data, a_buf + l_shift_mem, l_sign->sig_len);
+    l_shift_mem += l_sign->sig_len;
+    return l_sign;
+}
+
 /* Serialize a private key. */
 uint8_t* dap_enc_tesla_write_private_key(const tesla_private_key_t* a_private_key, size_t *a_buflen_out)
 {

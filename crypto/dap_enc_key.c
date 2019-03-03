@@ -205,6 +205,57 @@ void dap_enc_key_deinit()
 }
 
 /**
+ * @brief dap_enc_key_serealize_sign
+ *
+ * @param a_key_type
+ * @param a_sign
+ * @param a_sign_len [in/out]
+ * @return allocates memory with private key
+ */
+uint8_t* dap_enc_key_serealize_sign(dap_enc_key_type_t a_key_type, uint8_t *a_sign, size_t *a_sign_len)
+{
+    uint8_t *data = NULL;
+    switch (a_key_type) {
+    case DAP_ENC_KEY_TYPE_SIG_BLISS:
+        data = dap_enc_sig_bliss_write_signature((bliss_signature_t*)a_sign, a_sign_len);
+        break;
+    case DAP_ENC_KEY_TYPE_SIG_TESLA:
+        data = dap_enc_tesla_write_signature((tesla_signature_t*)a_sign, a_sign_len);
+        break;
+    default:
+        data = DAP_NEW_Z_SIZE(uint8_t, *a_sign_len);
+        memcpy(data, a_sign, *a_sign_len);
+    }
+    return data;
+}
+
+/**
+ * @brief dap_enc_key_serealize_sign
+ *
+ * @param a_key_type
+ * @param a_sign
+ * @param a_sign_len [in/out]
+ * @return allocates memory with private key
+ */
+uint8_t* dap_enc_key_deserealize_sign(dap_enc_key_type_t a_key_type, uint8_t *a_sign, size_t a_sign_len)
+{
+    uint8_t *data = NULL;
+    switch (a_key_type) {
+    case DAP_ENC_KEY_TYPE_SIG_BLISS:
+        data = dap_enc_sig_bliss_read_signature((bliss_signature_t*)a_sign, a_sign_len);
+        break;
+    case DAP_ENC_KEY_TYPE_SIG_TESLA:
+        data = dap_enc_tesla_read_signature((tesla_signature_t*)a_sign, a_sign_len);
+        break;
+    default:
+        data = DAP_NEW_Z_SIZE(uint8_t, a_sign_len);
+        memcpy(data, a_sign, a_sign_len);
+    }
+    return data;
+}
+
+
+/**
  * @brief dap_enc_key_serealize_priv_key
  *
  * @param a_key
@@ -494,6 +545,25 @@ int dap_enc_gen_key_public (dap_enc_key_t *a_key, void * a_output)
  * @brief dap_enc_key_delete
  * @param a_key
  */
+void dap_enc_key_signature_delete(dap_enc_key_type_t a_key_type, uint8_t *a_sig_buf)
+{
+    switch (a_key_type) {
+    case DAP_ENC_KEY_TYPE_SIG_BLISS:
+        bliss_signature_delete((bliss_signature_t*)a_sig_buf);
+        break;
+    case DAP_ENC_KEY_TYPE_SIG_TESLA:
+        tesla_signature_delete((tesla_signature_t*)a_sig_buf);
+        break;
+    default:
+        break;
+    }
+    DAP_DELETE(a_sig_buf);
+}
+
+/**
+ * @brief dap_enc_key_delete
+ * @param a_key
+ */
 void dap_enc_key_delete(dap_enc_key_t * a_key)
 {
     if(s_callbacks[a_key->type].delete_callback) {
@@ -502,10 +572,9 @@ void dap_enc_key_delete(dap_enc_key_t * a_key)
         log_it(L_ERROR, "delete callback is null. Can be leak memory!");
     }
     /* a_key->_inheritor must be cleaned in delete_callback func */
-
-    free(a_key->pub_key_data);
-    free(a_key->priv_key_data);
-    free(a_key);
+    DAP_DELETE(a_key->pub_key_data);
+    DAP_DELETE(a_key->priv_key_data);
+    DAP_DELETE(a_key);
 }
 
 size_t dap_enc_key_get_enc_size(dap_enc_key_t * a_key, const size_t buf_in_size)

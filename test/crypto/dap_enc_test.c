@@ -231,20 +231,21 @@ static void test_serealize_deserealize_pub_priv(dap_enc_key_type_t key_type)
     dap_enc_key_t* key = dap_enc_key_new_generate(key_type, kex_data, kex_size, seed, seed_size, 32);
     // Serialize key & save/read to/from buf
     size_t l_data_pub_size = 0;
+    //uint8_t *l_data_pub = DAP_NEW_SIZE(uint8_t, l_data_pub_size);//dap_enc_key_serealize_pub_key(key, &l_data_pub_size);
     uint8_t *l_data_pub = dap_enc_key_serealize_pub_key(key, &l_data_pub_size);
     _write_key_in_file(l_data_pub, l_data_pub_size, TEST_SER_FILE_NAME);
     uint8_t *l_data_pub_read = _read_key_from_file(TEST_SER_FILE_NAME, l_data_pub_size);
 
     size_t l_data_priv_size = 0;
     uint8_t *l_data_priv = dap_enc_key_serealize_priv_key(key, &l_data_priv_size);
-    _write_key_in_file(l_data_pub, l_data_pub_size, TEST_SER_FILE_NAME);
+    _write_key_in_file(l_data_priv, l_data_priv_size, TEST_SER_FILE_NAME);
     uint8_t *l_data_priv_read = _read_key_from_file(TEST_SER_FILE_NAME, l_data_priv_size);
 
     // create new key2
     dap_enc_key_t *key2 = dap_enc_key_new(key_type);
     // Deserialize key2
-    dap_enc_key_deserealize_pub_key(key2, l_data_pub, l_data_pub_size);
-    dap_enc_key_deserealize_priv_key(key2, l_data_priv, l_data_priv_size);
+    dap_enc_key_deserealize_pub_key(key2, l_data_pub_read, l_data_pub_size);
+    dap_enc_key_deserealize_priv_key(key2, l_data_priv_read, l_data_priv_size);
 
     DAP_DELETE(l_data_pub);
     DAP_DELETE(l_data_pub_read);
@@ -289,6 +290,15 @@ static void test_serealize_deserealize_pub_priv(dap_enc_key_type_t key_type)
 
     dap_assert_PIF(sig_buf_size>0 && is_sig==1, "Check make signature");
 
+    // serealize & deserealize signature
+    size_t sig_buf_len = sig_buf_size;
+    uint8_t *l_sign_tmp = dap_enc_key_serealize_sign(key_type, sig_buf, &sig_buf_len);
+    dap_enc_key_signature_delete(key_type, sig_buf);
+    sig_buf = dap_enc_key_deserealize_sign(key_type, l_sign_tmp, sig_buf_len);
+    DAP_DELETE(l_sign_tmp);
+
+    dap_assert_PIF(sig_buf, "Check serealize->deserealize signature");
+
     // decode by key2
     switch (key_type) {
     case DAP_ENC_KEY_TYPE_SIG_BLISS:
@@ -296,18 +306,20 @@ static void test_serealize_deserealize_pub_priv(dap_enc_key_type_t key_type)
             is_vefify = 1;
         break;
     case DAP_ENC_KEY_TYPE_SIG_PICNIC:
-        if(key->dec_na(key2, source_buf, source_size, sig_buf, sig_buf_size) == 0)
+        if(key2->dec_na(key2, source_buf, source_size, sig_buf, sig_buf_size) == 0)
             is_vefify = 1;
         break;
     case DAP_ENC_KEY_TYPE_SIG_TESLA:
-        if(key->dec_na(key2, source_buf, source_size, sig_buf, sig_buf_size) == 0)
+        if(key2->dec_na(key2, source_buf, source_size, sig_buf, sig_buf_size) == 0)
             is_vefify = 1;
         break;
     default:
         is_vefify = 0;
     }
+    //dap_enc_key_delete(key);
     dap_enc_key_delete(key2);
-    DAP_DELETE(sig_buf);
+    dap_enc_key_signature_delete(key_type, sig_buf);
+
 
     dap_assert_PIF(is_vefify==1, "Check verify signature");
 

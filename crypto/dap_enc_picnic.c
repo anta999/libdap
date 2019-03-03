@@ -20,7 +20,7 @@ static void set_picnic_params_t(struct dap_enc_key *key)
         if(key->priv_key_data)
         *param = ((picnic_privatekey_t*) key->priv_key_data)->params;
         else if(key->pub_key_data)
-            *param = ((picnic_privatekey_t*) key->pub_key_data)->params;
+            *param = ((picnic_publickey_t*) key->pub_key_data)->params;
     }
 }
 
@@ -93,8 +93,8 @@ void dap_enc_sig_picnic_key_new_generate(struct dap_enc_key * key, const void *k
 
     key->priv_key_data_size = sizeof(picnic_privatekey_t);
     key->pub_key_data_size = sizeof(picnic_publickey_t);
-    key->priv_key_data = malloc(key->priv_key_data_size);
-    key->pub_key_data = malloc(key->pub_key_data_size);
+    key->priv_key_data = calloc(1, key->priv_key_data_size);
+    key->pub_key_data = calloc(1, key->pub_key_data_size);
 
     picnic_keys_gen((picnic_privatekey_t *) key->priv_key_data, (picnic_publickey_t *) key->pub_key_data, parameters);
     if(!picnic_validate_keypair((picnic_privatekey_t *) key->priv_key_data, (picnic_publickey_t *) key->pub_key_data))
