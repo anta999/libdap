@@ -237,19 +237,21 @@ uint8_t* dap_enc_key_serealize_sign(dap_enc_key_type_t a_key_type, uint8_t *a_si
  * @param a_sign_len [in/out]
  * @return allocates memory with private key
  */
-uint8_t* dap_enc_key_deserealize_sign(dap_enc_key_type_t a_key_type, uint8_t *a_sign, size_t a_sign_len)
+uint8_t* dap_enc_key_deserealize_sign(dap_enc_key_type_t a_key_type, uint8_t *a_sign, size_t *a_sign_len)
 {
     uint8_t *data = NULL;
     switch (a_key_type) {
     case DAP_ENC_KEY_TYPE_SIG_BLISS:
-        data = dap_enc_sig_bliss_read_signature((bliss_signature_t*)a_sign, a_sign_len);
+        data = (uint8_t*)dap_enc_sig_bliss_read_signature(a_sign, *a_sign_len);
+        *a_sign_len = sizeof(bliss_signature_t);
         break;
     case DAP_ENC_KEY_TYPE_SIG_TESLA:
-        data = dap_enc_tesla_read_signature((tesla_signature_t*)a_sign, a_sign_len);
+        data = (uint8_t*)dap_enc_tesla_read_signature(a_sign, *a_sign_len);
+        *a_sign_len = sizeof(tesla_signature_t);
         break;
     default:
-        data = DAP_NEW_Z_SIZE(uint8_t, a_sign_len);
-        memcpy(data, a_sign, a_sign_len);
+        data = DAP_NEW_Z_SIZE(uint8_t, *a_sign_len);
+        memcpy(data, a_sign, *a_sign_len);
     }
     return data;
 }
